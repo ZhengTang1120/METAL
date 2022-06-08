@@ -144,8 +144,7 @@ class EmbeddingLayer(InitialLayer):
 
         embedParts = [word_embeds1, word_embeds2, tag_embed, ner_embed, dist_embed, pos_embed, pred_embed]
         embedParts = [ep for ep in embedParts if ep is not None]
-        print ([ep.size() for ep in embedParts if ep is not None])
-        embed = torch.cat(embedParts, dim=1)
+        embed = torch.cat(embedParts, dim=2)
         return self.dropout(embed)
 
 class RnnLayer(IntermediateLayer):
