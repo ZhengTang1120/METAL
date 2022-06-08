@@ -75,7 +75,7 @@ class Layers(nn.Module):
 class InitialLayer(nn.Module):
     def __init__(self):
         super().__init__()
-    def forward(self, , words):
+    def forward(self, words):
         raise NotImplementedError
 
 class IntermediateLayer(nn.Module):
