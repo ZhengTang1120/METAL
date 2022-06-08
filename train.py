@@ -12,4 +12,4 @@ if __name__ == '__main__':
 
     if args.train:
         config = ConfigFactory.parse_file(args.config)
-        taskManager = TaskManager(config, args.seed)
+        taskManager = TaskManager(config, 1234)
