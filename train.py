@@ -9,6 +9,12 @@ tqdm.pandas()
 
 from gensim.models import KeyedVectors
 
+from torch import optim
+from torch.utils.data import DataLoader
+from sklearn.metrics import accuracy_score
+
+from dataloader import *
+
 def read_sents(sentences):
     data = {'words': [], 'ners': []}
     for sent in sentences:
@@ -37,6 +43,8 @@ if __name__ == '__main__':
         taskManager = TaskManager(config, 1234)
 
         glove = KeyedVectors.load_word2vec_format('/data1/home/zheng/new/processors/main/src/main/python/glove.840B.300d.10f.txt')
+        print (glove.vectors)
+        print (glove.vectors.shape)
         pad_tok = '<pad>'
         pad_emb = np.zeros(300)
         glove.add_vector(pad_tok, pad_emb)
@@ -61,10 +69,37 @@ if __name__ == '__main__':
             pad_ner_id = ner_to_index[pad_ner]
             def get_ner_ids(ners):
                 return get_ids(ners, ner_to_index)
-            train_df['ners ids'] = train_df['ners'].progress_map(get_ner_ids)
+            train_df['ner ids'] = train_df['ners'].progress_map(get_ner_ids)
 
+            dev_df = read_sents(task.devSentences)
+            dev_df['word ids'] = dev_df['words'].progress_map(lambda x: get_ids(x, glove.key_to_index, unk_id))
+            dev_df['ner ids'] = dev_df['ners'].progress_map(lambda x: get_ids(x, ner_to_index))
 
-            print (train_df)
+# hyperparameters
+lr = 1e-3
+weight_decay = 1e-5
+batch_size = 100
+shuffle = True
+n_epochs = 10
+vectors = glove.vectors
+hidden_size = 100
+num_layers = 2
+bidirectional = True
+dropout = 0.1
+output_size = len(index_to_tag)
+word_size = 10000
+
+# initialize the model, loss function, optimizer, and data-loader
+model = Layers(config, word_size, output_size, vectors)
+loss_func = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+train_ds = MyDataset(train_df['word ids'], train_df['ner ids'])
+train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
+dev_ds = MyDataset(dev_df['word ids'], dev_df['ner ids'])
+dev_dl = DataLoader(dev_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
+
+train_loss, train_acc = [], []
+dev_loss, dev_acc = [], []
 
 
 
