@@ -101,7 +101,7 @@ def collate_fn(batch):
     y_padded = pad_sequence(ys, batch_first=True, padding_value=pad_ner_id)
     # return padded
     return x_padded, y_padded, lengths
-    
+
 # hyperparameters
 lr = 1e-3
 weight_decay = 1e-5
@@ -159,6 +159,7 @@ for epoch in range(n_epochs):
         optimizer.step()
     train_loss.append(np.mean(losses))
     train_acc.append(np.mean(acc))
+    print (train_loss[-1], train_acc[-1])
     
     model.eval()
     with torch.no_grad():
@@ -179,6 +180,8 @@ for epoch in range(n_epochs):
             acc.append(accuracy_score(gold, pred))
         dev_loss.append(np.mean(losses))
         dev_acc.append(np.mean(acc))
+
+        print (dev_loss[-1], dev_acc[-1])
 
 
 
