@@ -1,5 +1,6 @@
 from torch.utils.data import Dataset
 from torch.nn.utils.rnn import pad_sequence
+import torch
 
 class MyDataset(Dataset):
     def __init__(self, x, y):
