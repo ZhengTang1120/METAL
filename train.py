@@ -5,6 +5,8 @@ from taskManager import TaskManager
 import numpy as np
 import pandas as pd
 
+from gensim.models import KeyedVectors
+
 def read_sents(sentences):
     data = {'words': [], 'ners': []}
     for sent in sentences:
@@ -17,6 +19,9 @@ def read_sents(sentences):
         data['ners'].append(ners)
     return pd.DataFrame(data)
 
+def get_ids(tokens, key_to_index, unk_id=None):
+    return [key_to_index.get(tok, unk_id) for tok in tokens]
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -28,7 +33,35 @@ if __name__ == '__main__':
     if args.train:
         config = ConfigFactory.parse_file(args.config)
         taskManager = TaskManager(config, 1234)
+
+        glove = KeyedVectors.load_word2vec_format('glove-sbwc.i25.vec')
+        pad_tok = '<pad>'
+        unk_tok = '<unk>'
+        pad_emb = np.zeros(300)
+        glove.add_vector(pad_tok, pad_emb)
+        pad_tok_id = glove.key_to_index[pad_tok]
         for task in taskManager.tasks:
+
             train_df = read_sents(task.trainSentences)
 
+            def get_word_ids(tokens):
+                return get_ids(tokens, glove.key_to_index, unk_id)
+            train_df['word ids'] = train_df['words'].progress_map(get_word_ids)
+            train_df
+            
+
+            pad_ner = '<pad>'
+            index_to_ner = train_df['ners'].explode().unique().tolist() + [pad_ner]
+            ner_to_index = {t:i for i,t in enumerate(index_to_ner)}
+            pad_ner_id = ner_to_index[pad_ner]
+            def get_ner_ids(tags):
+                return get_ids(tags, ner_to_index)
+            train_df['tag ids'] = train_df['tags'].progress_map(get_tag_ids)
+
+
             print (train_df)
+
+
+
+
+
