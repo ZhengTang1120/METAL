@@ -59,9 +59,9 @@ if __name__ == '__main__':
             index_to_ner = train_df['ners'].explode().unique().tolist() + [pad_ner]
             ner_to_index = {t:i for i,t in enumerate(index_to_ner)}
             pad_ner_id = ner_to_index[pad_ner]
-            def get_ner_ids(tags):
-                return get_ids(tags, ner_to_index)
-            train_df['tag ids'] = train_df['tags'].progress_map(get_tag_ids)
+            def get_ner_ids(ners):
+                return get_ids(ners, ner_to_index)
+            train_df['ners ids'] = train_df['ners'].progress_map(get_ner_ids)
 
 
             print (train_df)
