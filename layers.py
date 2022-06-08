@@ -16,7 +16,7 @@ MAX_INTERMEDIATE_LAYERS: int = 10
 nonlin_map = {"relu":NONLIN_RELU, "tanh":NONLIN_TANH, "":NONLIN_NONE}
 
 class Layers(nn.Module):
-    def __init__(self, config, word_size, output_size, embeddings):
+    def __init__(self, config, word_size, output_size, embeddings, postag_size=0, ner_size=0):
         super().__init__()
 
         paramPrefix = "mtl.layers"
@@ -34,7 +34,7 @@ class Layers(nn.Module):
         predicateDim             = 1 if distanceEmbeddingSize and useIsPredicate else 0
 
         self.initialLayer = EmbeddingLayer(embeddings, word_size, learnedWordEmbeddingSize, dropoutProb, 
-                            posTagSize?, posTagEmbeddingSize, NERSize?, neTagEmbeddingSize, distanceWindowSize,
+                            postag_size, posTagEmbeddingSize, ner_size, neTagEmbeddingSize, distanceWindowSize,
                             positionEmbeddingSize, useIsPredicate)
         input_size = embedding.dim + learnedWordEmbeddingSize + posTagEmbeddingSize + neTagDim + distanceDim + positionDim + predicateDim
         # Work for the 1 intermediate layer 1 final layer scenario for now.
