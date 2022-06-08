@@ -37,7 +37,7 @@ class Layers(nn.Module):
                             postag_size, posTagEmbeddingSize, ner_size, neTagEmbeddingSize, 
                             distanceWindowSize, distanceEmbeddingSize, positionEmbeddingSize, 
                             useIsPredicate)
-        input_size = embeddings.shape[1] + learnedWordEmbeddingSize + posTagEmbeddingSize + neTagDim + distanceDim + positionDim + predicateDim
+        input_size = embeddings.shape[1] + learnedWordEmbeddingSize + posTagEmbeddingSize + neTagEmbeddingSize + distanceEmbeddingSize + positionEmbeddingSize + predicateDim
         # Work for the 1 intermediate layer 1 final layer scenario for now.
 
         self.intermediateLayers = list()
