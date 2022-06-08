@@ -4,6 +4,7 @@ from taskManager import TaskManager
 
 import numpy as np
 import pandas as pd
+from tqdm.notebook import tqdm
 tqdm.pandas()
 
 from gensim.models import KeyedVectors
