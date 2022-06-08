@@ -59,11 +59,12 @@ class Layers(nn.Module):
             raise RuntimeError(f"ERROR: unknown non-linearity {nonlinAsString}!")
         self.finalLayer = ForwardLayer(input_size, output_size, nonlin)
 
-    def forward(self, states, headPositions=None):
+    def forward(self, states, lengths, headPositions=None):
+
         if self.initialLayer is not None:
             states = self.initialLayer(states)
         for intermediateLayer in self.intermediateLayers:
-            states = intermediateLayer(states)
+            states = intermediateLayer(states, lengths)
         if self.finalLayer is not None:
             states = self.finalLayer(states, headPositions)
 
@@ -153,8 +154,8 @@ class RnnLayer(IntermediateLayer):
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, input_states):
-        packed = pack_padded_sequence(input_states, x_lengths, batch_first=True, enforce_sorted=False)
+    def forward(self, input_states, lengths):
+        packed = pack_padded_sequence(input_states, lengths, batch_first=True, enforce_sorted=False)
         states, _ = self.lstm(packed)
         if self.highway_connection:
             states =  torch.cat([states, input_states], dim=1)
