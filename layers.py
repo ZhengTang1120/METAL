@@ -179,7 +179,7 @@ class ForwardLayer(FinalLayer):
             self.nonlinearity = nn.Tanh()
         else:
             self.nonlinearity = None
-    def forward(self, input_states):
+    def forward(self, input_states, headPositions=None):
         output = self.classifier(input_states)
         output = self.nonlinearity(output) if self.nonlinearity else output
         return output
