@@ -46,7 +46,7 @@ class Layers(nn.Module):
         rnnStateSize = config.get_int(paramPrefix + f".intermediate{i}" + ".rnnStateSize", None)
         useHighwayConnections = config.get_bool(paramPrefix + f".intermediate{i}" + '.useHighwayConnections', False)
         rnnType = config.get_string(paramPrefix + f".intermediate{i}" + ".type", "lstm")
-        dropoutProb = config.get_float(paramPrefix + f".intermediate{i}" + ".dropoutProb", DEFAULT_DROPOUT_PROBABILITY)
+        dropoutProb = config.get_float(paramPrefix + f".intermediate{i}" + ".dropoutProb", DEFAULT_DROPOUT_PROB)
         intermediateLayer = RnnLayer(input_size, numLayers, rnnStateSize, rnnType, dropoutProb, useHighwayConnections)
         self.intermediateLayers.append(intermediateLayer)
         highwaySize = input_size if useHighwayConnections else 0
