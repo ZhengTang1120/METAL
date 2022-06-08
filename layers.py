@@ -159,6 +159,8 @@ class RnnLayer(IntermediateLayer):
 
         self.dropout = nn.Dropout(dropout)
 
+        self.highway_connection = highway_connection
+
     def forward(self, input_states, lengths):
         packed = pack_padded_sequence(input_states, lengths, batch_first=True, enforce_sorted=False)
         states, _ = self.rnn(packed)
