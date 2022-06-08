@@ -85,7 +85,7 @@ num_layers = 2
 bidirectional = True
 dropout = 0.1
 output_size = len(index_to_ner)
-word_size = vectors.shape(0)
+word_size = vectors.shape[0]
 
 # initialize the model, loss function, optimizer, and data-loader
 model = Layers(config, word_size, output_size, vectors)
