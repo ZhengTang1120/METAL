@@ -1,6 +1,6 @@
 from pyhocon import ConfigFactory
 import argparse
-from pytorch.taskManager import TaskManager
+import TaskManager
 
 if __name__ == '__main__':
 
