@@ -28,7 +28,7 @@ if __name__ == '__main__':
     if args.train:
         config = ConfigFactory.parse_file(args.config)
         taskManager = TaskManager(config, 1234)
-        for task in taskManager:
+        for task in taskManager.tasks:
             train_df = read_sents(taskManager.trainSentences)
 
             print (train_df)
