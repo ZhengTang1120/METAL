@@ -15,6 +15,8 @@ from sklearn.metrics import accuracy_score
 
 from dataloader import *
 
+from layers import Layers
+
 def read_sents(sentences):
     data = {'words': [], 'ners': []}
     for sent in sentences:
