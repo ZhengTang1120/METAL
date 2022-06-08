@@ -17,4 +17,5 @@ if __name__ == '__main__':
         for i, t in enumerate(taskManager.tasks):
             print (i)
             for sent in t.trainSentences:
-                print (sent)
+                for row in sent:
+                    print (row.tokens)
