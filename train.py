@@ -17,6 +17,9 @@ from dataloader import *
 
 from layers import Layers
 
+import torch
+from torch import nn
+
 def read_sents(sentences):
     data = {'words': [], 'ners': []}
     for sent in sentences:
@@ -100,6 +103,58 @@ dev_dl = DataLoader(dev_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=c
 
 train_loss, train_acc = [], []
 dev_loss, dev_acc = [], []
+
+# train the model
+for epoch in range(n_epochs):
+    losses, acc = [], []
+    model.train()
+    for x_padded, y_padded, lengths in tqdm(train_dl, desc=f'epoch {epoch+1} (train)'):
+        # clear gradients
+        model.zero_grad()
+        # send batch to right device
+        x_padded = x_padded
+        y_padded = y_padded
+        # predict label scores
+        y_pred = model(x_padded, lengths)
+        # reshape output
+        y_true = torch.flatten(y_padded)
+        y_pred = y_pred.view(-1, output_size)
+        mask = y_true != pad_tag_id
+        y_true = y_true[mask]
+        y_pred = y_pred[mask]
+        # compute loss
+        loss = loss_func(y_pred, y_true)
+        # accumulate for plotting
+        gold = y_true.detach().numpy()
+        pred = np.argmax(y_pred.detach().numpy(), axis=1)
+        losses.append(loss.detach().item())
+        acc.append(accuracy_score(gold, pred))
+        # backpropagate
+        loss.backward()
+        # optimize model parameters
+        optimizer.step()
+    train_loss.append(np.mean(losses))
+    train_acc.append(np.mean(acc))
+    
+    model.eval()
+    with torch.no_grad():
+        losses, acc = [], []
+        for x_padded, y_padded, lengths in tqdm(dev_dl, desc=f'epoch {epoch+1} (dev)'):
+            x_padded = x_padded
+            y_padded = y_padded
+            y_pred = model(x_padded, lengths)
+            y_true = torch.flatten(y_padded)
+            y_pred = y_pred.view(-1, output_size)
+            mask = y_true != pad_tag_id
+            y_true = y_true[mask]
+            y_pred = y_pred[mask]
+            loss = loss_func(y_pred, y_true)
+            gold = y_true.cpu().numpy()
+            pred = np.argmax(y_pred.cpu().numpy(), axis=1)
+            losses.append(loss.cpu().item())
+            acc.append(accuracy_score(gold, pred))
+        dev_loss.append(np.mean(losses))
+        dev_acc.append(np.mean(acc))
 
 
 
