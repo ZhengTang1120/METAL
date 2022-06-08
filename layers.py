@@ -34,8 +34,9 @@ class Layers(nn.Module):
         predicateDim             = 1 if distanceEmbeddingSize and useIsPredicate else 0
 
         self.initialLayer = EmbeddingLayer(embeddings, word_size, learnedWordEmbeddingSize, dropoutProb, 
-                            postag_size, posTagEmbeddingSize, ner_size, neTagEmbeddingSize, distanceWindowSize,
-                            positionEmbeddingSize, useIsPredicate)
+                            postag_size, posTagEmbeddingSize, ner_size, neTagEmbeddingSize, 
+                            distanceWindowSize, distanceEmbeddingSize, positionEmbeddingSize, 
+                            useIsPredicate)
         input_size = embedding.dim + learnedWordEmbeddingSize + posTagEmbeddingSize + neTagDim + distanceDim + positionDim + predicateDim
         # Work for the 1 intermediate layer 1 final layer scenario for now.
 
