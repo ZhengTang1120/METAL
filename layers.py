@@ -161,7 +161,7 @@ class RnnLayer(IntermediateLayer):
 
     def forward(self, input_states, lengths):
         packed = pack_padded_sequence(input_states, lengths, batch_first=True, enforce_sorted=False)
-        states, _ = self.lstm(packed)
+        states, _ = self.rnn(packed)
         if self.highway_connection:
             states =  torch.cat([states, input_states], dim=1)
         return self.dropout(states)
