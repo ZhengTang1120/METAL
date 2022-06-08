@@ -98,6 +98,8 @@ class EmbeddingLayer(InitialLayer):
                 useIsPredicate):
         super().__init__()
         self.useIsPredicate = useIsPredicate
+        if not torch.is_tensor(embeddings):
+            embeddings = torch.tensor(embeddings)
         self.pr_embedding = nn.Embedding.from_pretrained(embeddings=embeddings)
         self.wd_embedding = nn.Embedding(word_size, learnedWordEmbeddingSize)
         # self.ch_embedding = nn.Embedding(char_size, charEmbeddingSize)
