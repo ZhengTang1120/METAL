@@ -34,7 +34,7 @@ if __name__ == '__main__':
         config = ConfigFactory.parse_file(args.config)
         taskManager = TaskManager(config, 1234)
 
-        glove = KeyedVectors.load_word2vec_format('/data1/home/zheng/new/processors/main/src/main/python/glove.840B.300d.10f.txt ')
+        glove = KeyedVectors.load_word2vec_format('/data1/home/zheng/new/processors/main/src/main/python/glove.840B.300d.10f.txt')
         pad_tok = '<pad>'
         unk_tok = '<unk>'
         pad_emb = np.zeros(300)
