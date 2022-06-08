@@ -113,6 +113,8 @@ class EmbeddingLayer(InitialLayer):
             self.dw_embedding = nn.Embedding(distanceWindowSize * 2 + 3, distanceEmbeddingSize)
         if positionEmbeddingSize > 0:
             self.ps_embedding = nn.Embedding(101, positionEmbeddingSize)
+        else:
+            self.ps_embedding = None
 
         self.dropout = nn.Dropout(dropout)
 
