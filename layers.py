@@ -28,7 +28,7 @@ class Layers(nn.Module):
         neTagEmbeddingSize       = config.get_int(paramPrefix + ".initial" + ".neTagEmbeddingSize",DEFAULT_NE_TAG_EMBEDDING_SIZE)
         distanceEmbeddingSize    = config.get_int(paramPrefix + ".initial" + ".distanceEmbeddingSize",DEFAULT_DISTANCE_EMBEDDING_SIZE)
         distanceWindowSize       = config.get_int(paramPrefix + ".initial" + ".distanceWindowSize",DEFAULT_DISTANCE_WINDOW_SIZE)
-        useIsPredicate           = config.get_bool(paramPrefix + ".initial" + ".useIsPredicate",DEFAULT_USE_IS_PREDICATE) == 1
+        useIsPredicate           = config.get_bool(paramPrefix + ".initial" + ".useIsPredicate",DEFAULT_USE_IS_PREDICATE==1)
         positionEmbeddingSize    = config.get_int(paramPrefix + ".initial" + ".positionEmbeddingSize",DEFAULT_POSITION_EMBEDDING_SIZE)
         dropoutProb              = config.get_float(paramPrefix + ".initial" + ".dropoutProb",DEFAULT_DROPOUT_PROB)
         predicateDim             = 1 if distanceEmbeddingSize and useIsPredicate else 0
