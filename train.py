@@ -48,17 +48,6 @@ class MyDataset(Dataset):
         y = torch.tensor(self.y[index])
         return x, y
 
-def collate_fn(batch):
-    # separate xs and ys
-    xs, ys = zip(*batch)
-    # get lengths
-    lengths = [len(x) for x in xs]
-    # pad sequences
-    x_padded = pad_sequence(xs, batch_first=True, padding_value=pad_tok_id)
-    y_padded = pad_sequence(ys, batch_first=True, padding_value=pad_tag_id)
-    # return padded
-    return x_padded, y_padded, lengths
-
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
@@ -102,6 +91,17 @@ if __name__ == '__main__':
             dev_df['word ids'] = dev_df['words'].progress_map(lambda x: get_ids(x, glove.key_to_index, unk_id))
             dev_df['ner ids'] = dev_df['ners'].progress_map(lambda x: get_ids(x, ner_to_index))
 
+def collate_fn(batch):
+    # separate xs and ys
+    xs, ys = zip(*batch)
+    # get lengths
+    lengths = [len(x) for x in xs]
+    # pad sequences
+    x_padded = pad_sequence(xs, batch_first=True, padding_value=pad_tok_id)
+    y_padded = pad_sequence(ys, batch_first=True, padding_value=pad_ner_id)
+    # return padded
+    return x_padded, y_padded, lengths
+    
 # hyperparameters
 lr = 1e-3
 weight_decay = 1e-5
@@ -143,7 +143,7 @@ for epoch in range(n_epochs):
         # reshape output
         y_true = torch.flatten(y_padded)
         y_pred = y_pred.view(-1, output_size)
-        mask = y_true != pad_tag_id
+        mask = y_true != pad_ner_id
         y_true = y_true[mask]
         y_pred = y_pred[mask]
         # compute loss
@@ -169,7 +169,7 @@ for epoch in range(n_epochs):
             y_pred = model(x_padded, lengths)
             y_true = torch.flatten(y_padded)
             y_pred = y_pred.view(-1, output_size)
-            mask = y_true != pad_tag_id
+            mask = y_true != pad_ner_id
             y_true = y_true[mask]
             y_pred = y_pred[mask]
             loss = loss_func(y_pred, y_true)
