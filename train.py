@@ -43,8 +43,6 @@ if __name__ == '__main__':
         taskManager = TaskManager(config, 1234)
 
         glove = KeyedVectors.load_word2vec_format('/data1/home/zheng/new/processors/main/src/main/python/glove.840B.300d.10f.txt')
-        print (glove.vectors)
-        print (glove.vectors.shape)
         pad_tok = '<pad>'
         pad_emb = np.zeros(300)
         glove.add_vector(pad_tok, pad_emb)
@@ -86,8 +84,8 @@ hidden_size = 100
 num_layers = 2
 bidirectional = True
 dropout = 0.1
-output_size = len(index_to_tag)
-word_size = 10000
+output_size = len(index_to_ner)
+word_size = vectors.shape(0)
 
 # initialize the model, loss function, optimizer, and data-loader
 model = Layers(config, word_size, output_size, vectors)
