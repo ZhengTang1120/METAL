@@ -13,7 +13,7 @@ DEFAULT_POSITION_EMBEDDING_SIZE: int = 0 # no position embeddings by default
 DEFAULT_DISTANCE_WINDOW_SIZE: int = 0
 DEFAULT_USE_IS_PREDICATE: int = 0
 MAX_INTERMEDIATE_LAYERS: int = 10
-nonlin_map = {"relu":NONLIN_RELU, "tanh":NONLIN_TANH, "":NONLIN_NONE}
+nonlin_map = {"relu":"relu", "tanh":"tanh", "":""}
 
 class Layers(nn.Module):
     def __init__(self, config, word_size, output_size, embeddings, postag_size=0, ner_size=0):
