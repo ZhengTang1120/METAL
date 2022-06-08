@@ -38,11 +38,13 @@ if __name__ == '__main__':
 
         glove = KeyedVectors.load_word2vec_format('/data1/home/zheng/new/processors/main/src/main/python/glove.840B.300d.10f.txt')
         pad_tok = '<pad>'
-        unk_tok = '<unk>'
-        unk_id = glove.key_to_index[unk_tok]
         pad_emb = np.zeros(300)
         glove.add_vector(pad_tok, pad_emb)
         pad_tok_id = glove.key_to_index[pad_tok]
+        unk_tok = '<unk>'
+        unk_emb = np.random.rand(300)
+        glove.add_vector(unk_tok, unk_emb)
+        unk_id = glove.key_to_index[unk_tok]
         for task in taskManager.tasks:
 
             train_df = read_sents(task.trainSentences)
