@@ -23,17 +23,17 @@ from transformers import BertTokenizer
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 def read_sents(sentences):
-    data = {'words': ['<CLS>'], 'ners': ['<PAD>']}
+    data = {'words': [], 'ners': []}
     for sent in sentences:
-        words = list()
-        ners = list()
+        words = ['<CLS>']
+        ners = ['<PAD>']
         for row in sent:
             words.append(tokenizer.tokenize(row.tokens[0])[-1])# use the last sub token
             ners.append(row.tokens[1])
+        words.append('<SEP>')
+        ners.append('<PAD>')
         data['words'].append(words)
         data['ners'].append(ners)
-    data['words'].append('<SEP>')
-    data['ners'].append('<PAD>')
     return pd.DataFrame(data)
 
 def get_ids(tokens, key_to_index, unk_id=None):
