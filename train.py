@@ -92,7 +92,7 @@ def collate_fn(batch):
     # get lengths
     lengths = [len(x) for x in xs]
     # pad sequences
-    x_padded = pad_sequence(xs, batch_first=True, padding_value=pad_tok_id)
+    x_padded = pad_sequence(xs, batch_first=True, padding_value=0)
     y_padded = pad_sequence(ys, batch_first=True, padding_value=pad_ner_id)
     # return padded
     return x_padded, y_padded, lengths
