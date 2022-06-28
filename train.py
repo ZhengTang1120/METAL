@@ -124,7 +124,7 @@ dev_loss, dev_acc = [], []
 for epoch in range(n_epochs):
     losses, acc = [], []
     model.train()
-    for x_padded, y_padded, lengths in tqdm(dev_dl, desc=f'epoch {epoch+1} (train)'):
+    for x_padded, y_padded, lengths in tqdm(train_dl, desc=f'epoch {epoch+1} (train)'):
         # clear gradients
         model.zero_grad()
         # send batch to right device
@@ -176,8 +176,6 @@ for epoch in range(n_epochs):
             acc.append(accuracy_score(gold, pred))
         dev_loss.append(np.mean(losses))
         dev_acc.append(np.mean(acc))
-        print (golds)
-        print (preds)
         print (dev_loss[-1], dev_acc[-1], f1_score(np.array(golds), np.array(preds), labels=[l for l in index_to_ner if l!='O' and l!='<PAD>'], average='micro'))
 
 
