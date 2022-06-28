@@ -52,12 +52,6 @@ class InitialLayer(nn.Module):
     def forward(self, words):
         raise NotImplementedError
 
-class IntermediateLayer(nn.Module):
-    def __init__(self):
-        super().__init__()
-    def forward(self, inputExpressions):
-        raise NotImplementedError
-
 class FinalLayer(nn.Module):
     def __init__(self):
         super().__init__()
@@ -74,63 +68,6 @@ class BERTLayer(InitialLayer):
         h = output.last_hidden_state
 
         return h
-
-
-class EmbeddingLayer(InitialLayer):
-    def __init__(self, embeddings, word_size, learnedWordEmbeddingSize, dropout, 
-                tag_size, posTagEmbeddingSize, ner_size, neTagEmbeddingSize, 
-                distanceWindowSize, distanceEmbeddingSize, positionEmbeddingSize,
-                useIsPredicate):
-        super().__init__()
-        self.useIsPredicate = useIsPredicate
-        if not torch.is_tensor(embeddings):
-            embeddings = torch.tensor(embeddings)
-        self.pr_embedding = nn.Embedding.from_pretrained(embeddings=embeddings)
-        self.wd_embedding = nn.Embedding(word_size, learnedWordEmbeddingSize)
-        # self.ch_embedding = nn.Embedding(char_size, charEmbeddingSize)
-        # self.ch_lstm      = nn.LSTM(input_size=charEmbeddingSize, hidden_size=char_hidden_size, 
-        #                             num_layers=1, bidirectional=True, dropout=dropout)
-        if tag_size > 0 and posTagEmbeddingSize > 0:
-            self.tg_embedding = nn.Embedding(tag_size, posTagEmbeddingSize)
-        if ner_size > 0 and neTagEmbeddingSize > 0:
-            self.ne_embedding = nn.Embedding(ner_size, neTagEmbeddingSize)
-        if distanceWindowSize > 0 and distanceEmbeddingSize > 0:
-            self.dw_embedding = nn.Embedding(distanceWindowSize * 2 + 3, distanceEmbeddingSize)
-        if positionEmbeddingSize > 0:
-            self.ps_embedding = nn.Embedding(101, positionEmbeddingSize)
-        else:
-            self.ps_embedding = None
-
-        self.dropout = nn.Dropout(dropout)
-
-    def forward(self, words, tags=None, nes=None, headPositions=None):
-        word_embeds1 = self.pr_embedding(words)
-        word_embeds2 = self.wd_embedding(words)
-
-        tag_embed = self.tg_embedding(tags) if tags and self.tg_embedding else None
-        ner_embed = self.ne_embedding(nes)  if nes  and self.ne_embedding else None
-
-        if headPositions and self.useIsPredicate:
-            pred_embed = torch.FloatTensor([1 if i==predicatePosition else 0 for i, predicatePosition in enumerate(headPositions)]).unsqueeze(1)
-        else:
-            pred_embed = None
-
-        if headPositions and self.dw_embedding:
-            dists = [max(i-predicatePosition+self.distanceWindowSize+1, 0) if i-predicatePosition <= self.distanceWindowSize else 2 * self.distanceWindowSize + 2 for i, predicatePosition in enumerate(headPositions)]
-            dist_embed = self.dw_embedding(torch.LongTensor(dists))
-        else:
-            dist_embed = None
-
-        if self.ps_embedding:
-            values = [i if i<100 else 100 for i, word in enumerate(words)]
-            pos_embed = self.ps_embedding(torch.LongTensor(values))
-        else:
-            pos_embed = None
-
-        embedParts = [word_embeds1, word_embeds2, tag_embed, ner_embed, dist_embed, pos_embed, pred_embed]
-        embedParts = [ep for ep in embedParts if ep is not None]
-        embed = torch.cat(embedParts, dim=2)
-        return self.dropout(embed)
 
 class ForwardLayer(FinalLayer):
     def __init__(self, input_size, output_size, nonlinearity):
