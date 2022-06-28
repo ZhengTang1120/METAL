@@ -73,7 +73,7 @@ if __name__ == '__main__':
             train_df['word ids'] = train_df['words'].progress_map(get_word_ids)            
 
             pad_ner = '<PAD>'
-            index_to_ner = train_df['ners'].explode().unique().tolist() + [pad_ner]
+            index_to_ner = train_df['ners'].explode().unique().tolist()
             ner_to_index = {t:i for i,t in enumerate(index_to_ner)}
             pad_ner_id = ner_to_index[pad_ner]
             def get_ner_ids(ners):
