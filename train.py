@@ -106,6 +106,7 @@ num_layers = 2
 bidirectional = True
 dropout = 0.1
 output_size = len(index_to_ner)
+print (index_to_ner)
 
 # initialize the model, loss function, optimizer, and data-loader
 model = Layers(config, output_size)
@@ -176,7 +177,7 @@ for epoch in range(n_epochs):
         dev_loss.append(np.mean(losses))
         dev_acc.append(np.mean(acc))
 
-        print (dev_loss[-1], dev_acc[-1], f1_score(golds, preds, average='micro'))
+        print (dev_loss[-1], dev_acc[-1], f1_score(golds, preds, labels=[l for l in index_to_ner if l!='O'], average='micro'))
 
 
 
