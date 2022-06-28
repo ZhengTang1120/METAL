@@ -110,7 +110,7 @@ dropout = 0.1
 output_size = len(index_to_ner)
 
 # initialize the model, loss function, optimizer, and data-loader
-model = Layers(config, output_size, vectors)
+model = Layers(config, output_size)
 loss_func = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 train_ds = MyDataset(train_df['word ids'], train_df['ner ids'])
