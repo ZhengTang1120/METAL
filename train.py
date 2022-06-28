@@ -96,7 +96,7 @@ def collate_fn(batch):
     return x_padded, y_padded, lengths
 
 # hyperparameters
-lr = 1e-3
+lr = 1e-5
 weight_decay = 1e-5
 batch_size = 100
 shuffle = True
