@@ -168,8 +168,8 @@ for epoch in range(n_epochs):
             y_true = y_true[mask]
             y_pred = y_pred[mask]
             loss = loss_func(y_pred, y_true)
-            gold = y_true.cpu().numpy()
-            pred = np.argmax(y_pred.cpu().numpy(), axis=1)
+            gold = y_true.cpu().numpy().tolist()
+            pred = np.argmax(y_pred.cpu().numpy(), axis=1).tolist()
             losses.append(loss.cpu().item())
             golds += gold
             preds += pred
@@ -177,7 +177,7 @@ for epoch in range(n_epochs):
         dev_loss.append(np.mean(losses))
         dev_acc.append(np.mean(acc))
 
-        print (dev_loss[-1], dev_acc[-1], f1_score(golds, preds, labels=[l for l in index_to_ner if l!='O' and l!='<PAD>'], average='micro'))
+        print (dev_loss[-1], dev_acc[-1], f1_score(np.array(golds), np.array(preds), labels=[l for l in index_to_ner if l!='O' and l!='<PAD>'], average='micro'))
 
 
 
