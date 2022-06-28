@@ -48,6 +48,7 @@ class MyDataset(Dataset):
         return len(self.y)
     
     def __getitem__(self, index):
+        print (self.y, index)
         x = torch.tensor(self.x[index])
         y = torch.tensor(self.y[index])
         return x, y
@@ -70,9 +71,7 @@ if __name__ == '__main__':
 
             def get_word_ids(tokens):
                 return tokenizer.convert_tokens_to_ids(tokens)
-            train_df['word ids'] = train_df['words'].progress_map(get_word_ids)
-            train_df
-            
+            train_df['word ids'] = train_df['words'].progress_map(get_word_ids)            
 
             pad_ner = '<PAD>'
             index_to_ner = train_df['ners'].explode().unique().tolist() + [pad_ner]
