@@ -124,7 +124,7 @@ dev_loss, dev_acc = [], []
 for epoch in range(n_epochs):
     losses, acc = [], []
     model.train()
-    for x_padded, y_padded, lengths in tqdm(dev_dl, desc=f'epoch {epoch+1} (train)'):
+    for x_padded, y_padded, lengths in tqdm(train_dl, desc=f'epoch {epoch+1} (train)'):
         # clear gradients
         model.zero_grad()
         # send batch to right device
