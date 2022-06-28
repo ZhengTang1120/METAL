@@ -9,7 +9,7 @@ tqdm.pandas()
 
 from torch import optim
 from torch.utils.data import DataLoader
-from sklearn.metrics import accuracy_score, f1_micro
+from sklearn.metrics import accuracy_score, f1_score
 
 from dataloader import *
 
