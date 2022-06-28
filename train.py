@@ -110,7 +110,7 @@ print (index_to_ner)
 
 # initialize the model, loss function, optimizer, and data-loader
 model = Layers(config, output_size)
-loss_func = nn.CrossEntropyLoss()
+loss_func = nn.CrossEntropyLoss(ignore_index=0)
 optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 train_ds = MyDataset(train_df['word ids'], train_df['ner ids'])
 train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
