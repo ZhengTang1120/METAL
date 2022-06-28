@@ -18,45 +18,14 @@ MAX_INTERMEDIATE_LAYERS: int = 10
 nonlin_map = {"relu":"relu", "tanh":"tanh", "":""}
 
 class Layers(nn.Module):
-    def __init__(self, config, word_size, output_size, embeddings, postag_size=0, ner_size=0):
+    def __init__(self, config, output_size, postag_size=0, ner_size=0):
         super().__init__()
 
         paramPrefix = "mtl.layers"
 
-        # learnedWordEmbeddingSize = config.get_int(paramPrefix + ".initial" + ".learnedWordEmbeddingSize",DEFAULT_LEARNED_WORD_EMBEDDING_SIZE)
-        # # charEmbeddingSize        = config.get_int(paramPrefix + ".charEmbeddingSize",DEFAULT_CHAR_EMBEDDING_SIZE)
-        # # charRnnStateSize         = config.get_int(paramPrefix + ".charRnnStateSize",DEFAULT_CHAR_RNN_STATE_SIZE)
-        # posTagEmbeddingSize      = config.get_int(paramPrefix + ".initial" + ".posTagEmbeddingSize",DEFAULT_POS_TAG_EMBEDDING_SIZE)
-        # neTagEmbeddingSize       = config.get_int(paramPrefix + ".initial" + ".neTagEmbeddingSize",DEFAULT_NE_TAG_EMBEDDING_SIZE)
-        # distanceEmbeddingSize    = config.get_int(paramPrefix + ".initial" + ".distanceEmbeddingSize",DEFAULT_DISTANCE_EMBEDDING_SIZE)
-        # distanceWindowSize       = config.get_int(paramPrefix + ".initial" + ".distanceWindowSize",DEFAULT_DISTANCE_WINDOW_SIZE)
-        # useIsPredicate           = config.get_bool(paramPrefix + ".initial" + ".useIsPredicate",DEFAULT_USE_IS_PREDICATE==1)
-        # positionEmbeddingSize    = config.get_int(paramPrefix + ".initial" + ".positionEmbeddingSize",DEFAULT_POSITION_EMBEDDING_SIZE)
-        # dropoutProb              = config.get_float(paramPrefix + ".initial" + ".dropoutProb",DEFAULT_DROPOUT_PROB)
-        # predicateDim             = 1 if distanceEmbeddingSize and useIsPredicate else 0
-
-        # self.initialLayer = EmbeddingLayer(embeddings, word_size, learnedWordEmbeddingSize, dropoutProb, 
-        #                     postag_size, posTagEmbeddingSize, ner_size, neTagEmbeddingSize, 
-        #                     distanceWindowSize, distanceEmbeddingSize, positionEmbeddingSize, 
-        #                     useIsPredicate)
-        # input_size = embeddings.shape[1] + learnedWordEmbeddingSize + posTagEmbeddingSize + neTagEmbeddingSize + distanceEmbeddingSize + positionEmbeddingSize + predicateDim
-        # Work for the 1 intermediate layer 1 final layer scenario for now.
-
         self.initialLayer = BERTLayer("bert-base-uncased")
-        config = BertConfig.from_pretrained(opt['bert'])
-        input_size = config.hidden_size
-
-        # self.intermediateLayers = list()
-        # i = 1
-        # numLayers = config.get_int(paramPrefix + f".intermediate{i}" + ".numLayers", 1)
-        # rnnStateSize = config.get_int(paramPrefix + f".intermediate{i}" + ".rnnStateSize", None)
-        # useHighwayConnections = config.get_bool(paramPrefix + f".intermediate{i}" + '.useHighwayConnections', False)
-        # rnnType = config.get_string(paramPrefix + f".intermediate{i}" + ".type", "lstm")
-        # dropoutProb = config.get_float(paramPrefix + f".intermediate{i}" + ".dropoutProb", DEFAULT_DROPOUT_PROB)
-        # intermediateLayer = RnnLayer(input_size, numLayers, rnnStateSize, rnnType, dropoutProb, useHighwayConnections)
-        # self.intermediateLayers.append(intermediateLayer)
-        # highwaySize = input_size if useHighwayConnections else 0
-        # input_size = 2 * rnnStateSize + highwaySize
+        bert_config = BertConfig.from_pretrained("bert-base-uncased")
+        input_size = bert_config.hidden_size
 
         i = 1
         nonlinAsString = config.get_string(f"mtl.task{i}.layers" + ".final" + ".nonlinearity", "")
@@ -70,8 +39,6 @@ class Layers(nn.Module):
 
         if self.initialLayer is not None:
             states = self.initialLayer(states)
-        # for intermediateLayer in self.intermediateLayers:
-        #     states = intermediateLayer(states, lengths)
         if self.finalLayer is not None:
             states = self.finalLayer(states, headPositions)
 
@@ -164,28 +131,6 @@ class EmbeddingLayer(InitialLayer):
         embedParts = [ep for ep in embedParts if ep is not None]
         embed = torch.cat(embedParts, dim=2)
         return self.dropout(embed)
-
-class RnnLayer(IntermediateLayer):
-    def __init__(self, input_size, num_layers, hidden_size, rnn_type, dropout, highway_connection):
-        super().__init__()
-        if rnn_type == 'gru':
-            self.rnn =  nn.GRU(input_size, hidden_size, num_layers, bidirectional=True, dropout=dropout)
-        elif rnn_type == 'lstm':
-            self.rnn = nn.LSTM(input_size, hidden_size, num_layers, bidirectional=True, dropout=dropout)
-        else:
-            raise RuntimeError(f'ERROR: unknown rnnType "{rnn_type}"!')
-
-        self.dropout = nn.Dropout(dropout)
-
-        self.highway_connection = highway_connection
-
-    def forward(self, input_states, lengths):
-        packed = pack_padded_sequence(input_states, lengths, batch_first=True, enforce_sorted=False)
-        states, _ = self.rnn(packed)
-        states, _ = pad_packed_sequence(states, batch_first=True)
-        if self.highway_connection:
-            states =  torch.cat([states, input_states], dim=2)
-        return self.dropout(states)
 
 class ForwardLayer(FinalLayer):
     def __init__(self, input_size, output_size, nonlinearity):

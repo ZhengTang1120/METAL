@@ -7,8 +7,6 @@ import pandas as pd
 from tqdm import tqdm
 tqdm.pandas()
 
-from gensim.models import KeyedVectors
-
 from torch import optim
 from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score
@@ -20,16 +18,22 @@ from layers import Layers
 import torch
 from torch import nn
 
+from transformers import BertTokenizer
+
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+
 def read_sents(sentences):
-    data = {'words': [], 'ners': []}
+    data = {'words': ['<CLS>'], 'ners': ['<PAD>']}
     for sent in sentences:
         words = list()
         ners = list()
         for row in sent:
-            words.append(row.tokens[0])
+            words.append(tokenizer.tokenize(row.tokens[0])[-1])# use the last sub token
             ners.append(row.tokens[1])
         data['words'].append(words)
         data['ners'].append(ners)
+    data['words'].append('<SEP>')
+    data['ners'].append('<PAD>')
     return pd.DataFrame(data)
 
 def get_ids(tokens, key_to_index, unk_id=None):
@@ -60,26 +64,17 @@ if __name__ == '__main__':
         config = ConfigFactory.parse_file(args.config)
         taskManager = TaskManager(config, 1234)
 
-        glove = KeyedVectors.load_word2vec_format('/data1/home/zheng/new/processors/main/src/main/python/glove.840B.300d.10f.txt')
-        pad_tok = '<pad>'
-        pad_emb = np.zeros(300)
-        glove.add_vector(pad_tok, pad_emb)
-        pad_tok_id = glove.key_to_index[pad_tok]
-        unk_tok = '<unk>'
-        unk_emb = np.random.rand(300)
-        glove.add_vector(unk_tok, unk_emb)
-        unk_id = glove.key_to_index[unk_tok]
         for task in taskManager.tasks:
 
             train_df = read_sents(task.trainSentences)
 
             def get_word_ids(tokens):
-                return get_ids(tokens, glove.key_to_index, unk_id)
+                return tokenizer.convert_tokens_to_ids(tokens)
             train_df['word ids'] = train_df['words'].progress_map(get_word_ids)
             train_df
             
 
-            pad_ner = '<pad>'
+            pad_ner = '<PAD>'
             index_to_ner = train_df['ners'].explode().unique().tolist() + [pad_ner]
             ner_to_index = {t:i for i,t in enumerate(index_to_ner)}
             pad_ner_id = ner_to_index[pad_ner]
@@ -88,7 +83,7 @@ if __name__ == '__main__':
             train_df['ner ids'] = train_df['ners'].progress_map(get_ner_ids)
 
             dev_df = read_sents(task.devSentences)
-            dev_df['word ids'] = dev_df['words'].progress_map(lambda x: get_ids(x, glove.key_to_index, unk_id))
+            dev_df['word ids'] = dev_df['words'].progress_map(get_word_ids)
             dev_df['ner ids'] = dev_df['ners'].progress_map(lambda x: get_ids(x, ner_to_index))
 
 def collate_fn(batch):
@@ -108,16 +103,14 @@ weight_decay = 1e-5
 batch_size = 100
 shuffle = True
 n_epochs = 10
-vectors = glove.vectors
 hidden_size = 100
 num_layers = 2
 bidirectional = True
 dropout = 0.1
 output_size = len(index_to_ner)
-word_size = vectors.shape[0]
 
 # initialize the model, loss function, optimizer, and data-loader
-model = Layers(config, word_size, output_size, vectors)
+model = Layers(config, output_size, vectors)
 loss_func = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 train_ds = MyDataset(train_df['word ids'], train_df['ner ids'])
