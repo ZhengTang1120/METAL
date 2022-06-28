@@ -176,7 +176,8 @@ for epoch in range(n_epochs):
             acc.append(accuracy_score(gold, pred))
         dev_loss.append(np.mean(losses))
         dev_acc.append(np.mean(acc))
-
+        print (golds)
+        print (preds)
         print (dev_loss[-1], dev_acc[-1], f1_score(np.array(golds), np.array(preds), labels=[l for l in index_to_ner if l!='O' and l!='<PAD>'], average='micro'))
 
 
