@@ -155,6 +155,8 @@ for epoch in range(n_epochs):
     model.eval()
     with torch.no_grad():
         losses, acc = [], []
+        golds = []
+        preds = []
         for x_padded, y_padded, lengths in tqdm(dev_dl, desc=f'epoch {epoch+1} (dev)'):
             x_padded = x_padded
             y_padded = y_padded
@@ -168,11 +170,13 @@ for epoch in range(n_epochs):
             gold = y_true.cpu().numpy()
             pred = np.argmax(y_pred.cpu().numpy(), axis=1)
             losses.append(loss.cpu().item())
-            acc.append(f1_score(gold, pred, average='micro'))
+            golds += gold
+            preds += pred
+            acc.append(accuracy_score(gold, pred))
         dev_loss.append(np.mean(losses))
         dev_acc.append(np.mean(acc))
 
-        print (dev_loss[-1], dev_acc[-1])
+        print (dev_loss[-1], dev_acc[-1], f1_score(golds, preds, average='micro'))
 
 
 
