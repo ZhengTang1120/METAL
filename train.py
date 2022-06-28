@@ -9,7 +9,7 @@ tqdm.pandas()
 
 from torch import optim
 from torch.utils.data import DataLoader
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, f1_micro
 
 from dataloader import *
 
@@ -168,7 +168,7 @@ for epoch in range(n_epochs):
             gold = y_true.cpu().numpy()
             pred = np.argmax(y_pred.cpu().numpy(), axis=1)
             losses.append(loss.cpu().item())
-            acc.append(accuracy_score(gold, pred))
+            acc.append(f1_score(gold, pred, average='micro'))
         dev_loss.append(np.mean(losses))
         dev_acc.append(np.mean(acc))
 
