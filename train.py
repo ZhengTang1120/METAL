@@ -48,7 +48,6 @@ class MyDataset(Dataset):
         return len(self.y)
     
     def __getitem__(self, index):
-        print (self.y, index)
         x = torch.tensor(self.x[index])
         y = torch.tensor(self.y[index])
         return x, y
