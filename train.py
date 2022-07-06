@@ -30,7 +30,7 @@ def read_sents(sentences):
         for row in sent:
             for i, subt in enumerate(tokenizer.tokenize(row.tokens[0])):
                 words.append(subt)# use the last sub token
-                ners.append(row.tokens[1]) if i == 0 else ners.append(-100)
+                ners.append(row.tokens[1]) if i == 0 else ners.append('<PAD>')
         words.append('<SEP>')
         ners.append('<PAD>')
         data['words'].append(words)
@@ -75,9 +75,9 @@ if __name__ == '__main__':
 
             pad_ner = '<PAD>'
             index_to_ner = train_df['ners'].explode().unique().tolist()
-            index_to_ner.remove(-100)
+            index_to_ner.remove('<PAD>')
             ner_to_index = {t:i for i,t in enumerate(index_to_ner)}
-            ner_to_index[-100] = -100
+            ner_to_index['<PAD>'] = -100
             pad_ner_id = ner_to_index[pad_ner]
             def get_ner_ids(ners):
                 return get_ids(ners, ner_to_index)
@@ -113,7 +113,7 @@ print (index_to_ner)
 
 # initialize the model, loss function, optimizer, and data-loader
 model = Layers(config, output_size)
-loss_func = nn.CrossEntropyLoss(ignore_index=0)
+loss_func = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 train_ds = MyDataset(train_df['word ids'], train_df['ner ids'])
 train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
