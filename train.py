@@ -75,7 +75,9 @@ if __name__ == '__main__':
 
             pad_ner = '<PAD>'
             index_to_ner = train_df['ners'].explode().unique().tolist()
+            index_to_ner.remove(-100)
             ner_to_index = {t:i for i,t in enumerate(index_to_ner)}
+            ner_to_index[-100] = -100
             pad_ner_id = ner_to_index[pad_ner]
             def get_ner_ids(ners):
                 return get_ids(ners, ner_to_index)
