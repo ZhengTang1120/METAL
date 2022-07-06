@@ -28,8 +28,9 @@ def read_sents(sentences):
         words = ['<CLS>']
         ners = ['<PAD>']
         for row in sent:
-            words.append(tokenizer.tokenize(row.tokens[0])[-1])# use the last sub token
-            ners.append(row.tokens[1])
+            for i, subt in enumerate(tokenizer.tokenize(row.tokens[0])):
+                words.append(subt)# use the last sub token
+                ners.append(row.tokens[1]) if i == 0 else ners.append(-100)
         words.append('<SEP>')
         ners.append('<PAD>')
         data['words'].append(words)
