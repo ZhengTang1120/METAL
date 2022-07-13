@@ -62,8 +62,6 @@ class MyDataset(Dataset):
 def collate_fn(batch):
     # separate xs and ys
     xs, ys, zs = zip(*batch)
-    print (xs)
-    print (zs)
     # get lengths
     lengths = [len(x) for x in xs]
     # pad sequences
@@ -74,7 +72,7 @@ def collate_fn(batch):
         z_index[0] += [i] * len(z)
         z_index[1] += z
     # return padded
-    return x_padded, y_padded, lengths, tuple(np.array(z_index[0]), np.array(z_index[1]))
+    return x_padded, y_padded, lengths, (np.array(z_index[0]), np.array(z_index[1]))
 
 if __name__ == '__main__':
 
