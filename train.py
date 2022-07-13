@@ -72,6 +72,9 @@ def collate_fn(batch):
         z_index[0] += [i] * len(z)
         z_index[1] += z
     # return padded
+    print (y_padded)
+    print (z_index)
+    exit()
     return x_padded, y_padded, lengths, (np.array(z_index[0]), np.array(z_index[1]))
 
 if __name__ == '__main__':
