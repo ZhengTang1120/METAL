@@ -23,7 +23,7 @@ from transformers import BertTokenizer
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 def read_sents(sentences):
-    data = {'words': [], 'ners': []}
+    data = {'words': [], 'ners': [], 'ids': []}
     for sent in sentences:
         words = ['<CLS>']
         ners = ['<PAD>']
@@ -62,6 +62,8 @@ class MyDataset(Dataset):
 def collate_fn(batch):
     # separate xs and ys
     xs, ys, zs = zip(*batch)
+    print (xs)
+    print (zs)
     # get lengths
     lengths = [len(x) for x in xs]
     # pad sequences
