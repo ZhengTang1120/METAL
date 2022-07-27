@@ -202,8 +202,9 @@ else:
         losses, acc = [], []
         golds = []
         preds = []
+        word_ids = list()
         for x_padded, y_padded, _ in dev_dl:
-            print (x_padded)
+            word_ids.append(x_padded.cpu().numpy().tolist())
         # for x_padded, y_padded, _ in tqdm(dev_dl, desc=f'dev eval'):
         #     x_padded = x_padded
         #     y_padded = y_padded
@@ -233,7 +234,7 @@ else:
         #     # assert pred == pred2
 
         # loss, acc, f1 = np.mean(losses), np.mean(acc), f1_score(np.array(golds), np.array(preds), labels=[i for i, l in enumerate(index_to_ner) if l!='O' and l!='<PAD>'], average='micro')
-
+    print (json.dumps(word_ids))
         # print (f1)
 
 
