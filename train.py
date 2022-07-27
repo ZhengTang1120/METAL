@@ -53,40 +53,37 @@ class MyDataset(Dataset):
         y = torch.tensor(self.y[index])
         return x, y
 
-if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model_file', type=str, help='Filename of the model.', nargs='+')
-    parser.add_argument('--train', action='store_true', help='Set the code to training purpose.')
-    parser.add_argument('--config', type=str, help='Filename of the configuration.')
-    parser.add_argument('--do_train', type=bool, default=True)
-    args = parser.parse_args()
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_file', type=str, help='Filename of the model.', nargs='+')
+parser.add_argument('--train', action='store_true', help='Set the code to training purpose.')
+parser.add_argument('--config', type=str, help='Filename of the configuration.')
+args = parser.parse_args()
 
-    if args.train:
-        config = ConfigFactory.parse_file(args.config)
-        taskManager = TaskManager(config, 1234)
+config = ConfigFactory.parse_file(args.config)
+taskManager = TaskManager(config, 1234)
 
-        for task in taskManager.tasks:
+for task in taskManager.tasks:
 
-            train_df = read_sents(task.trainSentences)
+    train_df = read_sents(task.trainSentences)
 
-            def get_word_ids(tokens):
-                return tokenizer.convert_tokens_to_ids(tokens)
-            train_df['word ids'] = train_df['words'].progress_map(get_word_ids)            
+    def get_word_ids(tokens):
+        return tokenizer.convert_tokens_to_ids(tokens)
+    train_df['word ids'] = train_df['words'].progress_map(get_word_ids)            
 
-            pad_ner = '<PAD>'
-            index_to_ner = train_df['ners'].explode().unique().tolist()
-            index_to_ner.remove('<PAD>')
-            ner_to_index = {t:i for i,t in enumerate(index_to_ner)}
-            ner_to_index['<PAD>'] = -100
-            pad_ner_id = ner_to_index[pad_ner]
-            def get_ner_ids(ners):
-                return get_ids(ners, ner_to_index)
-            train_df['ner ids'] = train_df['ners'].progress_map(get_ner_ids)
+    pad_ner = '<PAD>'
+    index_to_ner = train_df['ners'].explode().unique().tolist()
+    index_to_ner.remove('<PAD>')
+    ner_to_index = {t:i for i,t in enumerate(index_to_ner)}
+    ner_to_index['<PAD>'] = -100
+    pad_ner_id = ner_to_index[pad_ner]
+    def get_ner_ids(ners):
+        return get_ids(ners, ner_to_index)
+    train_df['ner ids'] = train_df['ners'].progress_map(get_ner_ids)
 
-            dev_df = read_sents(task.devSentences)
-            dev_df['word ids'] = dev_df['words'].progress_map(get_word_ids)
-            dev_df['ner ids'] = dev_df['ners'].progress_map(lambda x: get_ids(x, ner_to_index))
+    dev_df = read_sents(task.devSentences)
+    dev_df['word ids'] = dev_df['words'].progress_map(get_word_ids)
+    dev_df['ner ids'] = dev_df['ners'].progress_map(lambda x: get_ids(x, ner_to_index))
 
 def collate_fn(batch):
     # separate xs and ys
@@ -122,7 +119,7 @@ dev_ds = MyDataset(dev_df['word ids'], dev_df['ner ids'])
 dev_dl = DataLoader(dev_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
 best = 0
 
-if args.do_train:
+if args.train:
     # train the model
     for epoch in range(n_epochs):
         losses, acc = [], []
