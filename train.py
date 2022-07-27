@@ -183,7 +183,7 @@ else:
         losses, acc = [], []
         golds = []
         preds = []
-        for x_padded, y_padded, lengths in tqdm(dev_dl, desc=f'epoch {epoch+1} (dev)'):
+        for x_padded, y_padded, lengths in tqdm(dev_dl, desc=f'dev eval'):
             x_padded = x_padded
             y_padded = y_padded
             y_pred = model(x_padded, lengths)
