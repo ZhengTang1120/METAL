@@ -206,10 +206,10 @@ else:
             # x_padded = x_padded
             # y_padded = y_padded
             # y_pred_o = model(x_padded)
-            # y_true = torch.flatten(y_padded)
-            # y_pred = y_pred_o.view(-1, output_size)
-            # mask = y_true != pad_ner_id
-            # y_true = y_true[mask]
+            y_true = torch.flatten(y_padded)
+            y_pred = y_pred_o.view(-1, output_size)
+            mask = y_true != pad_ner_id
+            y_true = y_true[mask]
             # y_pred = y_pred[mask]
             # loss = loss_func(y_pred, y_true)
             gold = y_true.cpu().numpy().tolist()
