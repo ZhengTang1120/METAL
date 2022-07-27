@@ -175,7 +175,7 @@ if args.do_train:
                 preds += pred
                 acc.append(accuracy_score(gold, pred))
             loss, acc, f1 = np.mean(losses), np.mean(acc), f1_score(np.array(golds), np.array(preds), labels=[i for i, l in enumerate(index_to_ner) if l!='O' and l!='<PAD>'], average='micro')
-
+            print (epoch, f1)
             if f1 > best:
                 torch.save(model.state_dict(), "best_model.pt")
                 best = f1
@@ -204,6 +204,6 @@ else:
             acc.append(accuracy_score(gold, pred))
         loss, acc, f1 = np.mean(losses), np.mean(acc), f1_score(np.array(golds), np.array(preds), labels=[i for i, l in enumerate(index_to_ner) if l!='O' and l!='<PAD>'], average='micro')
 
-
+        print (f1)
 
 
