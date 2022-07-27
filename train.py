@@ -23,6 +23,8 @@ from transformers import BertTokenizer
 import onnx
 import onnxruntime
 
+import json
+
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 def read_sents(sentences):
