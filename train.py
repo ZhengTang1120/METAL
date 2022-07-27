@@ -182,7 +182,6 @@ if args.train:
                 torch.save(model.state_dict(), "best_model.pt")
                 input_names = ["words"]
                 output_names = ["ners"]
-                torch.onnx.export(model, dummy_input, "best_model.onnx", verbose=True, input_names=input_names, output_names=output_names)
                 torch.onnx.export(model,
                     x_padded,
                     "best_model.onnx",
