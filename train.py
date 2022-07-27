@@ -116,7 +116,7 @@ optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 train_ds = MyDataset(train_df['word ids'], train_df['ner ids'])
 train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
 dev_ds = MyDataset(dev_df['word ids'], dev_df['ner ids'])
-dev_dl = DataLoader(dev_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
+dev_dl = DataLoader(dev_ds, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
 best = 0
 
 if args.train:
