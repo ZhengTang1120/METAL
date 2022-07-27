@@ -121,7 +121,7 @@ optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 train_ds = MyDataset(train_df['word ids'], train_df['ner ids'])
 train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
 dev_ds = MyDataset(dev_df['word ids'], dev_df['ner ids'])
-dev_dl = DataLoader(dev_ds, batch_size=batch_size, shuffle=False, collate_fn=collate_fn)
+dev_dl = DataLoader(dev_ds, batch_size=1, shuffle=False, collate_fn=collate_fn)
 best = 0
 
 if args.train:
@@ -182,8 +182,15 @@ if args.train:
                 torch.save(model.state_dict(), "best_model.pt")
                 input_names = ["words"]
                 output_names = ["ners"]
-                dummy_input = x_padded
                 torch.onnx.export(model, dummy_input, "best_model.onnx", verbose=True, input_names=input_names, output_names=output_names)
+                torch.onnx.export(model,
+                    x_padded,
+                    "best_model.onnx",
+                    export_params=True,
+                    do_constant_folding=True,
+                    input_names = input_names,
+                    output_names = output_names,
+                    dynamic_axes = {"words": {0: 'sent length'}})
                 best = f1
 else:
     model.load_state_dict(torch.load("best_model.pt"))
@@ -196,7 +203,6 @@ else:
         golds = []
         preds = []
         for x_padded, y_padded, _ in tqdm(dev_dl, desc=f'dev eval'):
-            print (x_padded.size())
             x_padded = x_padded
             y_padded = y_padded
             y_pred_o = model(x_padded)
@@ -213,10 +219,10 @@ else:
             preds += pred
             acc.append(accuracy_score(gold, pred))
 
-            # ort_inputs = {ort_session.get_inputs()[i].name: to_numpy(x) for i, x in enumerate([x_padded])}
-            # ort_outs = ort_session.run(None, ort_inputs)
+            ort_inputs = {ort_session.get_inputs()[i].name: to_numpy(x) for i, x in enumerate([x_padded])}
+            ort_outs = ort_session.run(None, ort_inputs)
 
-            # np.testing.assert_allclose(y_pred_o.detach().cpu().numpy(), ort_outs[0], rtol=1e-03, atol=1e-05)
+            np.testing.assert_allclose(y_pred_o.detach().cpu().numpy(), ort_outs[0], rtol=1e-03, atol=1e-05)
 
         loss, acc, f1 = np.mean(losses), np.mean(acc), f1_score(np.array(golds), np.array(preds), labels=[i for i, l in enumerate(index_to_ner) if l!='O' and l!='<PAD>'], average='micro')
 
