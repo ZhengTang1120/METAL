@@ -189,7 +189,8 @@ if args.train:
                     do_constant_folding=True,
                     input_names = input_names,
                     output_names = output_names,
-                    dynamic_axes = {"words": {0: 'sent length'}})
+                    opset_version=10, 
+                    dynamic_axes = {"words": {1: 'sent length'}})
                 best = f1
 else:
     model.load_state_dict(torch.load("best_model.pt"))
