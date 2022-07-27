@@ -20,6 +20,9 @@ from torch import nn
 
 from transformers import BertTokenizer
 
+import onnx
+import onnxruntime
+
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 
 def read_sents(sentences):
@@ -96,6 +99,9 @@ def collate_fn(batch):
     # return padded
     return x_padded, y_padded, lengths
 
+def to_numpy(tensor):
+    return tensor.detach().cpu().numpy() if tensor.requires_grad else tensor.cpu().numpy()
+
 # hyperparameters
 lr = 1e-5
 weight_decay = 1e-5
@@ -107,7 +113,6 @@ num_layers = 2
 bidirectional = True
 dropout = 0.1
 output_size = len(index_to_ner)
-print (index_to_ner)
 
 # initialize the model, loss function, optimizer, and data-loader
 model = Layers(config, output_size)
@@ -177,12 +182,15 @@ if args.train:
                 torch.save(model.state_dict(), "best_model.pt")
                 input_names = ["words"]
                 output_names = ["ners"]
-                dummy_input = x_padded
+                dummy_input = [x_padded]
                 torch.onnx.export(model, dummy_input, "best_model.onnx", verbose=True, input_names=input_names, output_names=output_names)
                 best = f1
 else:
     model.load_state_dict(torch.load("best_model.pt"))
     model.eval()
+    onnx_model = onnx.load("best_model.onnx")
+    onnx.checker.check_model(onnx_model)
+    ort_session = onnxruntime.InferenceSession("best_model.onnx")
     with torch.no_grad():
         losses, acc = [], []
         golds = []
@@ -190,9 +198,9 @@ else:
         for x_padded, y_padded, _ in tqdm(dev_dl, desc=f'dev eval'):
             x_padded = x_padded
             y_padded = y_padded
-            y_pred = model(x_padded)
+            y_pred_o = model(x_padded)
             y_true = torch.flatten(y_padded)
-            y_pred = y_pred.view(-1, output_size)
+            y_pred = y_pred_o.view(-1, output_size)
             mask = y_true != pad_ner_id
             y_true = y_true[mask]
             y_pred = y_pred[mask]
@@ -203,8 +211,15 @@ else:
             golds += gold
             preds += pred
             acc.append(accuracy_score(gold, pred))
+
+            ort_inputs = {ort_session.get_inputs()[i].name: to_numpy(x) for i, x in enumerate([x_padded])}
+            ort_outs = ort_session.run(None, ort_inputs)
+
+            np.testing.assert_allclose(y_pred_o.detach().cpu().numpy(), ort_outs[0], rtol=1e-03, atol=1e-05)
+
         loss, acc, f1 = np.mean(losses), np.mean(acc), f1_score(np.array(golds), np.array(preds), labels=[i for i, l in enumerate(index_to_ner) if l!='O' and l!='<PAD>'], average='micro')
 
         print (f1)
+
 
 
