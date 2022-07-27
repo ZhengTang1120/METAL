@@ -202,37 +202,39 @@ else:
         losses, acc = [], []
         golds = []
         preds = []
-        for x_padded, y_padded, _ in tqdm(dev_dl, desc=f'dev eval'):
-            x_padded = x_padded
-            y_padded = y_padded
-            y_pred_o = model(x_padded)
-            y_true = torch.flatten(y_padded)
-            y_pred = y_pred_o.view(-1, output_size)
-            mask = y_true != pad_ner_id
-            y_true = y_true[mask]
-            y_pred = y_pred[mask]
-            loss = loss_func(y_pred, y_true)
-            gold = y_true.cpu().numpy().tolist()
-            pred = np.argmax(y_pred.cpu().numpy(), axis=1).tolist()
-            losses.append(loss.cpu().item())
-            golds += gold
-            preds += pred
-            acc.append(accuracy_score(gold, pred))
+        for x_padded, y_padded, _ in dev_dl:
+            print (x_padded)
+        # for x_padded, y_padded, _ in tqdm(dev_dl, desc=f'dev eval'):
+        #     x_padded = x_padded
+        #     y_padded = y_padded
+        #     y_pred_o = model(x_padded)
+        #     y_true = torch.flatten(y_padded)
+        #     y_pred = y_pred_o.view(-1, output_size)
+        #     mask = y_true != pad_ner_id
+        #     y_true = y_true[mask]
+        #     y_pred = y_pred[mask]
+        #     loss = loss_func(y_pred, y_true)
+        #     gold = y_true.cpu().numpy().tolist()
+        #     pred = np.argmax(y_pred.cpu().numpy(), axis=1).tolist()
+        #     losses.append(loss.cpu().item())
+        #     golds += gold
+        #     preds += pred
+        #     acc.append(accuracy_score(gold, pred))
 
-            # print (x_padded)
+        #     # print (x_padded)
 
-            # ort_inputs = {ort_session.get_inputs()[i].name: to_numpy(x) for i, x in enumerate([x_padded])}
-            # ort_outs = ort_session.run(None, ort_inputs)
+        #     # ort_inputs = {ort_session.get_inputs()[i].name: to_numpy(x) for i, x in enumerate([x_padded])}
+        #     # ort_outs = ort_session.run(None, ort_inputs)
 
-            # # np.testing.assert_allclose(y_pred_o.detach().cpu().numpy(), ort_outs[0], rtol=1e-03, atol=1e-05)
-            # tensor = torch.Tensor(ort_outs[0]).view(-1, output_size)
-            # tensor = tensor[mask]
-            # pred2 = np.argmax(tensor.cpu().numpy(), axis=1).tolist()
-            # assert pred == pred2
+        #     # # np.testing.assert_allclose(y_pred_o.detach().cpu().numpy(), ort_outs[0], rtol=1e-03, atol=1e-05)
+        #     # tensor = torch.Tensor(ort_outs[0]).view(-1, output_size)
+        #     # tensor = tensor[mask]
+        #     # pred2 = np.argmax(tensor.cpu().numpy(), axis=1).tolist()
+        #     # assert pred == pred2
 
-        loss, acc, f1 = np.mean(losses), np.mean(acc), f1_score(np.array(golds), np.array(preds), labels=[i for i, l in enumerate(index_to_ner) if l!='O' and l!='<PAD>'], average='micro')
+        # loss, acc, f1 = np.mean(losses), np.mean(acc), f1_score(np.array(golds), np.array(preds), labels=[i for i, l in enumerate(index_to_ner) if l!='O' and l!='<PAD>'], average='micro')
 
-        print (f1)
+        # print (f1)
 
 
 
