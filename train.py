@@ -203,7 +203,6 @@ else:
         golds = []
         preds = []
         for x_padded, y_padded, _ in tqdm(dev_dl, desc=f'dev eval'):
-        for x_padded, y_padded, _ in tqdm(dev_dl, desc=f'dev eval'):
             x_padded = x_padded
             y_padded = y_padded
             y_pred_o = model(x_padded)
