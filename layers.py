@@ -35,7 +35,7 @@ class Layers(nn.Module):
             raise RuntimeError(f"ERROR: unknown non-linearity {nonlinAsString}!")
         self.finalLayer = ForwardLayer(input_size, output_size, nonlin)
 
-    def forward(self, states, lengths, headPositions=None):
+    def forward(self, states, headPositions=None):
 
         if self.initialLayer is not None:
             states = self.initialLayer(states)

@@ -124,14 +124,14 @@ if args.train:
     for epoch in range(n_epochs):
         losses, acc = [], []
         model.train()
-        for x_padded, y_padded, lengths in tqdm(train_dl, desc=f'epoch {epoch+1} (train)'):
+        for x_padded, y_padded, _ in tqdm(train_dl, desc=f'epoch {epoch+1} (train)'):
             # clear gradients
             model.zero_grad()
             # send batch to right device
             x_padded = x_padded
             y_padded = y_padded
             # predict label scores
-            y_pred = model(x_padded, lengths)
+            y_pred = model(x_padded)
             # reshape output
             y_true = torch.flatten(y_padded)
             y_pred = y_pred.view(-1, output_size)
@@ -155,10 +155,10 @@ if args.train:
             losses, acc = [], []
             golds = []
             preds = []
-            for x_padded, y_padded, lengths in tqdm(dev_dl, desc=f'epoch {epoch+1} (dev)'):
+            for x_padded, y_padded, _ in tqdm(dev_dl, desc=f'epoch {epoch+1} (dev)'):
                 x_padded = x_padded
                 y_padded = y_padded
-                y_pred = model(x_padded, lengths)
+                y_pred = model(x_padded)
                 y_true = torch.flatten(y_padded)
                 y_pred = y_pred.view(-1, output_size)
                 mask = y_true != pad_ner_id
@@ -175,6 +175,10 @@ if args.train:
             print (epoch, f1)
             if f1 > best:
                 torch.save(model.state_dict(), "best_model.pt")
+                input_names = ["words"]
+                output_names = ["ners"]
+                dummy_input = x_padded
+                torch.onnx.export(model, dummy_input, "best_model.onnx", verbose=True, input_names=input_names, output_names=output_names)
                 best = f1
 else:
     model.load_state_dict(torch.load("best_model.pt"))
@@ -183,10 +187,10 @@ else:
         losses, acc = [], []
         golds = []
         preds = []
-        for x_padded, y_padded, lengths in tqdm(dev_dl, desc=f'dev eval'):
+        for x_padded, y_padded, _ in tqdm(dev_dl, desc=f'dev eval'):
             x_padded = x_padded
             y_padded = y_padded
-            y_pred = model(x_padded, lengths)
+            y_pred = model(x_padded)
             y_true = torch.flatten(y_padded)
             y_pred = y_pred.view(-1, output_size)
             mask = y_true != pad_ner_id
