@@ -59,6 +59,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_file', type=str, help='Filename of the model.', nargs='+')
     parser.add_argument('--train', action='store_true', help='Set the code to training purpose.')
     parser.add_argument('--config', type=str, help='Filename of the configuration.')
+    parser.add_argument('--do_train', type=bool, default=True)
     args = parser.parse_args()
 
     if args.train:
@@ -119,43 +120,67 @@ train_ds = MyDataset(train_df['word ids'], train_df['ner ids'])
 train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
 dev_ds = MyDataset(dev_df['word ids'], dev_df['ner ids'])
 dev_dl = DataLoader(dev_ds, batch_size=batch_size, shuffle=shuffle, collate_fn=collate_fn)
+best = 0
 
-train_loss, train_acc = [], []
-dev_loss, dev_acc = [], []
+if args.do_train:
+    # train the model
+    for epoch in range(n_epochs):
+        losses, acc = [], []
+        model.train()
+        for x_padded, y_padded, lengths in tqdm(train_dl, desc=f'epoch {epoch+1} (train)'):
+            # clear gradients
+            model.zero_grad()
+            # send batch to right device
+            x_padded = x_padded
+            y_padded = y_padded
+            # predict label scores
+            y_pred = model(x_padded, lengths)
+            # reshape output
+            y_true = torch.flatten(y_padded)
+            y_pred = y_pred.view(-1, output_size)
+            mask = y_true != pad_ner_id
+            y_true = y_true[mask]
+            y_pred = y_pred[mask]
+            # compute loss
+            loss = loss_func(y_pred, y_true)
+            # accumulate for plotting
+            gold = y_true.detach().numpy()
+            pred = np.argmax(y_pred.detach().numpy(), axis=1)
+            losses.append(loss.detach().item())
+            acc.append(accuracy_score(gold, pred))
+            # backpropagate
+            loss.backward()
+            # optimize model parameters
+            optimizer.step()
+        
+        model.eval()
+        with torch.no_grad():
+            losses, acc = [], []
+            golds = []
+            preds = []
+            for x_padded, y_padded, lengths in tqdm(dev_dl, desc=f'epoch {epoch+1} (dev)'):
+                x_padded = x_padded
+                y_padded = y_padded
+                y_pred = model(x_padded, lengths)
+                y_true = torch.flatten(y_padded)
+                y_pred = y_pred.view(-1, output_size)
+                mask = y_true != pad_ner_id
+                y_true = y_true[mask]
+                y_pred = y_pred[mask]
+                loss = loss_func(y_pred, y_true)
+                gold = y_true.cpu().numpy().tolist()
+                pred = np.argmax(y_pred.cpu().numpy(), axis=1).tolist()
+                losses.append(loss.cpu().item())
+                golds += gold
+                preds += pred
+                acc.append(accuracy_score(gold, pred))
+            loss, acc, f1 = np.mean(losses), np.mean(acc), f1_score(np.array(golds), np.array(preds), labels=[i for i, l in enumerate(index_to_ner) if l!='O' and l!='<PAD>'], average='micro')
 
-# train the model
-for epoch in range(n_epochs):
-    losses, acc = [], []
-    model.train()
-    for x_padded, y_padded, lengths in tqdm(train_dl, desc=f'epoch {epoch+1} (train)'):
-        # clear gradients
-        model.zero_grad()
-        # send batch to right device
-        x_padded = x_padded
-        y_padded = y_padded
-        # predict label scores
-        y_pred = model(x_padded, lengths)
-        # reshape output
-        y_true = torch.flatten(y_padded)
-        y_pred = y_pred.view(-1, output_size)
-        mask = y_true != pad_ner_id
-        y_true = y_true[mask]
-        y_pred = y_pred[mask]
-        # compute loss
-        loss = loss_func(y_pred, y_true)
-        # accumulate for plotting
-        gold = y_true.detach().numpy()
-        pred = np.argmax(y_pred.detach().numpy(), axis=1)
-        losses.append(loss.detach().item())
-        acc.append(accuracy_score(gold, pred))
-        # backpropagate
-        loss.backward()
-        # optimize model parameters
-        optimizer.step()
-    train_loss.append(np.mean(losses))
-    train_acc.append(np.mean(acc))
-    print (train_loss[-1], train_acc[-1])
-    
+            if f1 > best:
+                torch.save(model.state_dict(), "best_model.pt")
+                best = f1
+else:
+    model.load_state_dict(torch.load("best_model.pt"))
     model.eval()
     with torch.no_grad():
         losses, acc = [], []
@@ -177,10 +202,7 @@ for epoch in range(n_epochs):
             golds += gold
             preds += pred
             acc.append(accuracy_score(gold, pred))
-        dev_loss.append(np.mean(losses))
-        dev_acc.append(np.mean(acc))
-        print (dev_loss[-1], dev_acc[-1], f1_score(np.array(golds), np.array(preds), labels=[i for i, l in enumerate(index_to_ner) if l!='O' and l!='<PAD>'], average='micro'))
-
+        loss, acc, f1 = np.mean(losses), np.mean(acc), f1_score(np.array(golds), np.array(preds), labels=[i for i, l in enumerate(index_to_ner) if l!='O' and l!='<PAD>'], average='micro')
 
 
 
