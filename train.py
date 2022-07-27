@@ -223,7 +223,7 @@ else:
             ort_outs = ort_session.run(None, ort_inputs)
 
             # np.testing.assert_allclose(y_pred_o.detach().cpu().numpy(), ort_outs[0], rtol=1e-03, atol=1e-05)
-            tensor = torch.Tensor(ort_outs[0])
+            tensor = torch.Tensor(ort_outs[0]).view(-1, output_size)
             tensor = tensor[mask]
             pred2 = np.argmax(tensor.cpu().numpy(), axis=1).tolist()
             assert pred == pred2
